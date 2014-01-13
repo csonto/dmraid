@@ -502,7 +502,7 @@ static int _get_num_devs_from_status(char *status)
 	int ret;
 
 	for (ret = 0; *status; status++) {
-		if (*status == 'A' || *status == 'D')
+		if (*status == 'A' || *status == 'a' || *status == 'D')
 			ret++;
 	}
 
@@ -1258,8 +1258,8 @@ err:
 	return D_IGNORE;
 }
 
-/* Get the raid45 device(s) that caused the trigger. */
-static enum disk_state_type _process_raid45_event(struct dm_task *dmt,
+/* Get the raid device(s) that caused the trigger. */
+static enum disk_state_type _process_raid_event(struct dm_task *dmt,
 						  char *params)
 {
 	int argc, i, num_devs, dead, ret = D_INSYNC;
@@ -1272,32 +1272,34 @@ static enum disk_state_type _process_raid45_event(struct dm_task *dmt,
 		return D_IGNORE;
 
 	/*
-	 * dm core parms (NOT provided in @params):  	0 976783872 raid45 
-	 *
-	 * raid45 device parms:     	3 253:4 253:5 253:6
-	 * raid45 device status:	1 AAA
+	 * raid device status:	<type> 3 AAA <synced/total> <action> <rmm>
 	 */
+
+	/* Skip over the raid type */
+	if(!dm_split_words(params, 1, 0, &p))
+		goto err;
+	p += strlen(p) + 1;
 
 	/* Number of devices. */
 	num_devs = _get_num_devs(params, &p);
 	if (!num_devs)
 		goto err;
 
-	/* Devices names + "1" + "AA". */
-	argc = num_devs + 2;
+	/* AAA + <completeness> <action> <resync mismatches> */
+	argc = 4;
 	args = dm_malloc(argc * sizeof(*args));
 	if (!args ||
 	    dm_split_words(p, argc, 0, args) != argc)
 		goto err;
 
-	dev_status_str = args[num_devs + 1];
+	dev_status_str = args[0];
 
 	/* Consistency check on num_devs and status chars. */
 	i = _get_num_devs_from_status(dev_status_str);
 	if (i != num_devs)
 		goto err;
 
-	/* Check for bad raid45 devices. */
+	/* Check for bad raid devices. */
 	for (i = 0, p = dev_status_str; i < rs->num_devs; i++) {
 		/* Skip past any non active/dead identifiers. */
 		dead = *(p++) == 'D';
@@ -1324,7 +1326,7 @@ static enum disk_state_type _process_raid45_event(struct dm_task *dmt,
 	return ret;
 
 err:
-	_event_cleanup_and_log(args, "raid45");
+	_event_cleanup_and_log(args, "raid");
 	return D_IGNORE;
 }
 
@@ -1341,7 +1343,7 @@ static void _process_event(char *target_type, struct dm_task *dmt, char *params)
 	} *proc,  process[] = {
 		{ "striped", _process_stripe_event, 0 },
 		{ "mirror",  _process_mirror_event, 1 },
-		{ "raid45",  _process_raid45_event, 1 },
+		{ "raid",    _process_raid_event, 1 },
 	};
 #ifdef	_LIBDMRAID_DSO_TESTING
 	struct dso_raid_set *rs;
@@ -1352,7 +1354,7 @@ static void _process_event(char *target_type, struct dm_task *dmt, char *params)
 	 * stripe (raid 0),
 	 * mirror (raid 1)
 	 * or
-	 * raid45 (raid 4/5).
+	 * raid   (raid 4/5).
 	 */
 	for (proc = process; proc < ARRAY_END(process); proc++) {
 		if (!strcmp(target_type, proc->target_type))

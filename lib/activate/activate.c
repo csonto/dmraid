@@ -118,6 +118,17 @@ _dm_path_offset(struct lib_context *lc, char **table,
 		     valid ? path : lc->path.error, offset);
 }
 
+/* Push metadata and data device path onto a table */
+static int
+_dm_meta_data_path(struct lib_context *lc, char **table, int valid,
+		   const char *meta, const char *path)
+
+{
+	return p_fmt(lc, table, " %s %s",
+		     meta ? meta : "-",
+		     valid ? path : lc->path.error);
+}
+
 /*
  * Create dm table for linear mapping.
  */
@@ -537,9 +548,10 @@ err:
 /* Push begin of line onto a RAID5 table. */
 /* FIXME: persistent dirty log. */
 static int
-_dm_raid45_bol(struct lib_context *lc, char **table, struct raid_set *rs,
+_dm_raid_bol(struct lib_context *lc, char **table, struct raid_set *rs,
 	       uint64_t sectors, unsigned int members)
 {
+	int rc;
 	int need_sync = rs_need_sync(rs);
 	struct handler_info rebuild_drive;
 
@@ -548,13 +560,31 @@ _dm_raid45_bol(struct lib_context *lc, char **table, struct raid_set *rs,
 	if (need_sync && !get_rebuild_drive(lc, rs, &rebuild_drive))
 		return 0;
 
-	return p_fmt(lc, table, "0 %U %s core 2 %u %s %s 1 %u %u %d",
-		     sectors, get_dm_type(lc, rs->type),
-		     calc_region_size(lc,
-				      total_sectors(lc, rs) /
-				      _dm_raid_devs(lc, rs, 0)),
-		     (need_sync) ? "sync" : "nosync", get_type(lc, rs->type),
-		     rs->stride, members, rebuild_drive.data.i32);
+	if (rebuild_drive.data.i32 < 0) {
+		rc = p_fmt(lc, table,
+		           "0 %U %s %s 4 %u %s region_size %u %u",
+			   sectors,
+			   get_dm_type(lc, rs->type),
+			   get_type(lc, rs->type),
+			   rs->stride,
+			   (need_sync) ? "sync" : "nosync",
+			   calc_region_size(lc, total_sectors(lc, rs) /
+					    _dm_raid_devs(lc, rs, 0)),
+			   members);
+	} else {
+		rc = p_fmt(lc, table,
+			   "0 %U %s %s 6 %u %s rebuild %d region_size %u %u",
+			   sectors,
+			   get_dm_type(lc, rs->type),
+			   get_type(lc, rs->type),
+			   rs->stride,
+			   (need_sync) ? "sync" : "nosync",
+			   rebuild_drive.data.i32,
+			   calc_region_size(lc, total_sectors(lc, rs) /
+					    _dm_raid_devs(lc, rs, 0)),
+			   members);
+	}
+	return rc;
 }
 
 /* Create "error target" name based on raid set name. */
@@ -669,7 +699,7 @@ err:
 }
 
 static int
-dm_raid45(struct lib_context *lc, char **table, struct raid_set *rs)
+dm_raid(struct lib_context *lc, char **table, struct raid_set *rs)
 {
 	int ret;
 	uint64_t sectors = 0;
@@ -749,7 +779,7 @@ dm_raid45(struct lib_context *lc, char **table, struct raid_set *rs)
 	 */
 	sectors *= members - 1;
 
-	if (!_dm_raid45_bol(lc, table, rs, sectors, members))
+	if (!_dm_raid_bol(lc, table, rs, sectors, members))
 		goto err;
 
 	/* Stacked RAID sets (for RAID50 etc.) */
@@ -759,7 +789,8 @@ dm_raid45(struct lib_context *lc, char **table, struct raid_set *rs)
 		if (!(path = mkdm_path(lc, r->name)))
 			goto err;
 
-		ret = _dm_path_offset(lc, table, valid_rs(r), path, 0);
+		log_dbg(lc, "%s: raid set device %s", __func__, path);
+		ret = _dm_meta_data_path(lc, table, valid_rs(r), NULL, path);
 		dbg_free(path);
 
 		if (!ret)
@@ -768,8 +799,11 @@ dm_raid45(struct lib_context *lc, char **table, struct raid_set *rs)
 
 	/* Lowest level RAID devices. */
 	list_for_each_entry(rd, &rs->devs, devs) {
-		if (!_dm_path_offset(lc, table, valid_rd(rd), 
-				     rd->di->path, rd->offset))
+		if (rd->offset)
+			goto err;
+		log_dbg(lc, "%s: low level dev %s", __func__, rd->di->path);
+		if (!_dm_meta_data_path(lc, table, valid_rd(rd), NULL,
+					rd->di->path))
 			goto err;
 	}
 
@@ -802,11 +836,11 @@ static struct type_handler {
 	{ t_linear, dm_linear },
 	{ t_raid0, dm_raid0 },
 	{ t_raid1, dm_raid1 },
-	{ t_raid4, dm_raid45 },
-	{ t_raid5_ls, dm_raid45 },
-	{ t_raid5_rs, dm_raid45 },
-	{ t_raid5_la, dm_raid45 },
-	{ t_raid5_ra, dm_raid45 },
+	{ t_raid4, dm_raid },
+	{ t_raid5_ls, dm_raid },
+	{ t_raid5_rs, dm_raid },
+	{ t_raid5_la, dm_raid },
+	{ t_raid5_ra, dm_raid },
 	/* RAID types below not supported (yet) */
 	{ t_raid6, dm_unsup },
 };

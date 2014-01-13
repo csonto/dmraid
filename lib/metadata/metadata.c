@@ -31,11 +31,11 @@ static const struct {
 	{ t_linear, "linear", "linear"},
 	{ t_raid0, "stripe", "striped"},
 	{ t_raid1, "mirror", "mirror"},
-	{ t_raid4, "raid4", "raid45"},
-	{ t_raid5_ls, "raid5_ls", "raid45"},
-	{ t_raid5_rs, "raid5_rs", "raid45"},
-	{ t_raid5_la, "raid5_la", "raid45"},
-	{ t_raid5_ra, "raid5_ra", "raid45"},
+	{ t_raid4, "raid4", "raid"},
+	{ t_raid5_ls, "raid5_ls", "raid"},
+	{ t_raid5_rs, "raid5_rs", "raid"},
+	{ t_raid5_la, "raid5_la", "raid"},
+	{ t_raid5_ra, "raid5_ra", "raid"},
 	{ t_raid6, "raid6", NULL},
 };
 
