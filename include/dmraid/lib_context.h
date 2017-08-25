@@ -46,7 +46,8 @@ enum lc_options {
 	LC_CREATE,
 	LC_REBUILD_SET,
 	LC_REBUILD_DISK,
-	LC_HOT_SPARE_SET,	/* Add new options below this one ! */
+	LC_HOT_SPARE_SET,	
+	LC_DEFER_UPDATE,	/* Add new options below this one ! */
 	LC_OPTIONS_SIZE,	/* Must be the last enumerator. */
 };
 
@@ -67,6 +68,7 @@ enum lc_options {
 #define	OPT_CREATE(lc)		(lc_opt(lc, LC_CREATE))
 #define OPT_HOT_SPARE_SET(lc)	(lc_opt(lc, LC_HOT_SPARE_SET))
 #define OPT_REBUILD_DISK(lc)	(lc_opt(lc, LC_REBUILD_DISK))
+#define OPT_DEFER_UPDATE(lc)	(lc_opt(lc, LC_DEFER_UPDATE))
 
 /* Return option value. */
 #define	OPT_STR(lc, o)		(lc->options[o].arg.str)
@@ -76,6 +78,7 @@ enum lc_options {
 #define	OPT_STR_PARTCHAR(lc)	OPT_STR(lc, LC_PARTCHAR)
 #define OPT_STR_HOT_SPARE_SET(lc)	OPT_STR(lc, LC_HOT_SPARE_SET)
 #define OPT_STR_REBUILD_DISK(lc)	OPT_STR(lc, LC_REBUILD_DISK)
+#define OPT_STR_DEFER_UPDATE(lc)	OPT_STR(lc, LC_DEFER_UPDATE)
 
 struct lib_version {
 	const char *text;

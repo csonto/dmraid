@@ -30,7 +30,7 @@ int add_dev_to_array(struct lib_context *lc, struct raid_set *rs,
 /*
  * Command line options.
  */
-static char const *short_opts = "a:hipP:"
+static char const *short_opts = "a:hipP:u"
 #ifndef	DMRAID_MINI
 	"bc::dDEf:glxM:"
 #ifdef	DMRAID_NATIVE_LOG
@@ -46,6 +46,7 @@ static struct option long_opts[] = {
 	{"format", required_argument, NULL, 'f'},
 	{"partchar", required_argument, NULL, 'P'},
 	{"no_partitions", no_argument, NULL, 'p'},
+	{"update_defer", no_argument, NULL, 'u'},
 # ifndef DMRAID_MINI
 	{"block_devices", no_argument, NULL, 'b'},
 	{"display_columns", optional_argument, NULL, 'c'},
@@ -197,6 +198,15 @@ check_part_separator(struct lib_context *lc, int arg)
 	return lc_stralloc_opt(lc, LC_PARTCHAR, optarg) ? 1 : 0;
 }
 
+/* Defer any mtadata updates in case of volume activation 
+ * at early stage of OS boot */
+static int
+defer_update(struct lib_context *lc, int arg)
+{
+    	lc_inc_opt(lc, arg);
+	return 1;
+}
+
 /* Display help information */
 static int
 help(struct lib_context *lc, int arg)
@@ -211,6 +221,7 @@ help(struct lib_context *lc, int arg)
 		  "\t[-P|--partchar CHAR]\n"
 		  "\t[-p|--no_partitions]\n"
 		  "\t[-Z|--rm_partitions]\n"
+		  "\t[-d|--update_defer]\n"
 		  "\t[--separator SEPARATOR]\n" "\t[RAID-set...]\n", c);
 	log_print(lc, "%s\t{-h|--help}\n", c);
 	log_print(lc, "%s\t{-V/--version}\n", c);
@@ -219,11 +230,12 @@ help(struct lib_context *lc, int arg)
 	log_print(lc,
 		  "* = [-d|--debug]... [-v|--verbose]... [-i|--ignorelocking]\n");
 	log_print(lc,
-		  "%s\t{-a|--activate} {y|n|yes|no} *\n"
+		  "%s\t{-a|--activate} {y|n|yes|no} \n"
 		  "\t[-f|--format FORMAT[,FORMAT...]]\n"
 		  "\t[-P|--partchar CHAR]\n" "\t[-p|--no_partitions]\n"
 		  "\t[--separator SEPARATOR]\n" "\t[-t|--test]\n"
-		  "\t[-Z|--rm_partitions] [RAID-set...]\n", c);
+		  "\t[-Z|--rm_partitions] [RAID-set...]\n"
+		  "\t[-u|--update_defer]", c);
 	log_print(lc,
 		  "%s\t{-b|--block_devices} *\n"
 		  "\t[-c|--display_columns][FIELD[,FIELD...]]...\n"
@@ -255,7 +267,8 @@ help(struct lib_context *lc, int arg)
 		  "\t[--str[i[de]] [0-9]...[kK][bB]]\n"
 		  "\t{--disk[s] \"device-path[, device-path...\"}\n", c);
 	log_print(lc, "%s\t{-x|--remove RAID-set} \n");
-	log_print(lc, "%s\t{-R|--rebuild} RAID-set [drive_name]\n", c);
+	log_print(lc, "%s\t{-R|--rebuild} RAID-set [drive_name]\n"
+		  "\t[-u|--update_defer]", c);
 	log_print(lc, "%s\t[{-f|--format FORMAT}]\n"
 		  "\t{-S|--spare [RAID-set]} \n"
 		  "\t{-M|--media \"device-path\"}\n", c);
@@ -283,6 +296,19 @@ static struct actions actions[] = {
 	 , ARGS,
 	 check_activate,
 	 0,
+	 },
+
+	/* Defer metadata update */
+	{'u',
+	 UNDEF,
+	 UNDEF,
+	 ACTIVATE | REBUILD
+#ifndef DMRAID_MINI
+	 | DBG | TEST | VERBOSE
+#endif
+	 , NO_ARGS,
+	 defer_update,
+	 LC_DEFER_UPDATE,
 	 },
 
 	/* Format option. */
@@ -726,7 +752,7 @@ handle_args(struct lib_context *lc, int argc, char ***argv)
 		if (o == 'C') {
 			*argv += optind - 1;
 			return 1;
-		} else if (o == 'R' && argc == 4) {
+		} else if (o == 'R' && (argc == 4 || argc == 5)) {
 			if (*(*argv + optind))
 				save_drive_name(lc, *(*argv + optind));
 		}
@@ -744,7 +770,7 @@ handle_args(struct lib_context *lc, int argc, char ***argv)
 		ret = check_actions_arguments(lc);
 
 	*argv += optind;
-	if (argc == 4 && lc->options[LC_REBUILD_SET].opt)
+	if ((argc == 4 || argc == 5) && lc->options[LC_REBUILD_SET].opt)
 		*argv += 1;
 
 	return ret;
@@ -871,7 +897,7 @@ struct prepost prepost[] = {
 	 0,
 	 activate_or_deactivate_sets,
 	 },
-
+	
 #ifndef DMRAID_MINI
 	/* Display block devices. */
 	{BLOCK_DEVICES,

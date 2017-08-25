@@ -11,6 +11,7 @@ dmraid \- discover, configure and activate software (ATA)RAID
  [-Z|--rm_partitions]
  [--separator SEPARATOR]
  [-t|--test]
+ [-u|--update_defer]
  [RAID-set...]
 
 .B dmraid
@@ -38,6 +39,7 @@ dmraid \- discover, configure and activate software (ATA)RAID
  {-R| --rebuild}
  RAID-set
  [device-path]
+ [-u|--update_defer]
 
 .B dmraid
  {-x| --remove}
@@ -118,7 +120,14 @@ underlying the set, ie if sda is part of the set, remove sda1, sda2, etc.
 This prevents applications from directly accessiong the disks bypassing dmraid.
 RAID set names given on command line don't need to be fully specified
 (eg, "dmraid -ay sil" would activate all discovered Silicon Image Medley
-RAID sets).
+RAID sets). Option 
+.B -u
+defers metadata update in case of rebuild is triggered parallelly with activation.
+Awoids metadata update to "OK" state if volume is not registered to the event
+monitoring. 
+Useful if volume is activating at early stage of booting process when registration
+to the event monitoring is impossible.
+
 
 .TP
 .I {-b|--block_devices} [device-path...]
@@ -208,7 +217,11 @@ Use CHAR as the separator between the device name and the partition number.
 .I {-R| --rebuild} RAID-set [device-path]
 Rebuild raid array after a drive has failed and a new drive is added. 
 For Intel chipset based systems, there are two methods in which a new drive 
-is added to the system.
+is added to the system. Option
+.B -u
+defers metadata update in case of rebuild is triggered. 
+Awoids metadata update to "OK" state if volume is not registered to the event
+monitoring. 
 
 1. Using OROM to identify a new drive
     During system reboot, enter OROM and mark the new drive as the rebuild drive.  
