@@ -1250,7 +1250,7 @@ static int
 isw_metadata_handler(struct lib_context *lc, enum handler_commands command,
 		     struct handler_info *info, void *context)
 {
-	int idx, ret = 0;
+	int ret = 0;
 	struct raid_set *rs = context;
 	struct raid_dev *rd = list_entry(rs->devs.next, struct raid_dev, devs);
 	struct isw *isw, *new_isw;

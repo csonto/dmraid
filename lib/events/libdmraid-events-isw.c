@@ -101,13 +101,12 @@ enum rebuild_type { REBUILD_START, REBUILD_END };
 static const char *default_dmraid_events_lib = "libdmraid-events.so";
 static const char *sys_dm_dm = "dm-";
 static const char *sys_block_path = "/sys/block/";
-static const char *sys_dm_path = "/sys/block/dm-";
+//static const char *sys_dm_path = "/sys/block/dm-";
 static const char *sys_scsi_path = "/sys/class/scsi_device/";
 static const char *sys_slaves_dir = "/slaves";
 static const char *sys_scsi_dev_blk = "/device/block";
 static const char sys_scsi_dev_blk_delims[] = { '/', ':' };
 static const char *sys_dev_dir = "/dev";
-static const char *syslog_ident = "libdmraid-events";
 
 /* Logging. */
 enum log_type { LOG_NAMES, LOG_PORTS, LOG_OPEN_FAILURE, LOG_NONE };
@@ -1534,7 +1533,7 @@ int register_device(const char *rs_name, const char *uuid,
 	/* FIXME: need to run first to get syslog() to work. */
 	_check_sgpio();
 
-	rs_name = basename(rs_name);
+	rs_name = basename((char *)rs_name);
 
 	/* Check for double registration attempt. */
 	pthread_mutex_lock(&_register_mutex);
@@ -1595,7 +1594,7 @@ int unregister_device(const char *rs_name, const char *uuid,
 {
 	struct dso_raid_set *prev, *rs;
 
-	rs_name = basename(rs_name);
+	rs_name = basename((char *)rs_name);
 
 	pthread_mutex_lock(&_register_mutex);
 

@@ -427,12 +427,12 @@ static int _validate_dev_and_dso_names(char *dev_name, char *dso_name)
  * Function removes unnecassary path to the DSO library
  * (leaves only library name)
  */
-char * dso_lib_name_prepare(char * dso_path) 
+char *dso_lib_name_prepare(char *dso_path) 
 {
 	char *ptr = NULL;
 	char *lib_name = dso_path;
 
-	while (ptr = strchr(lib_name, '/'))
+	while ((ptr = strchr(lib_name, '/')) != NULL)
 	    lib_name = ptr + 1;
 	
 	return lib_name;
