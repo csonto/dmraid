@@ -374,6 +374,7 @@ static int _dm_raid_state(char *dev_name)
 				/* Skip past raid45 target chars. */
 				if (status[i] != 'p' &&
 				    status[i] != 'i' &&
+				    status[i] != 'D' &&
 				    status[i] != 'A')
 					errors++;
 			}
@@ -422,17 +423,34 @@ static int _validate_dev_and_dso_names(char *dev_name, char *dso_name)
 	return (dso_name && _dm_valid_dso(dso_name)) ? 1 : 0;
 }
 
+/*
+ * Function removes unnecassary path to the DSO library
+ * (leaves only library name)
+ */
+char * dso_lib_name_prepare(char * dso_path) 
+{
+	char *ptr = NULL;
+	char *lib_name = dso_path;
+
+	while (ptr = strchr(lib_name, '/'))
+	    lib_name = ptr + 1;
+	
+	return lib_name;
+}
+
 /* Register a device to be monitored for events. */
 /* FIXME: correct dev_name vs. _dm_raid_state() check of device. */
 int dm_register_device(char *dev_name, char *dso_name)
 {	
-	int errors, pending,
-	    ret = _validate_dev_and_dso_names(dev_name, dso_name);
+	int errors, pending,ret;
+	char *dso_lib_name = dso_lib_name_prepare(dso_name);
+	
+	ret= _validate_dev_and_dso_names(dev_name, dso_lib_name);
 
 	if (ret)
 		return ret;
 
-	if (dm_monitored_events(&pending, dev_name, dso_name)) {
+	if (dm_monitored_events(&pending, dev_name, dso_lib_name)) {
 		printf("ERROR: device \"%s\" %s\n", dev_name,
 		       pending ? "has a registration event pending" :
 				 "is already being monitored");
@@ -452,7 +470,7 @@ int dm_register_device(char *dev_name, char *dso_name)
 		return 1;
 	}
 
-	if (_dm_set_events(EVENTS_REGISTER, dev_name, dso_name)) {
+	if (_dm_set_events(EVENTS_REGISTER, dev_name, dso_lib_name)) {
 		printf("ERROR:  Unable to register a device mapper "
 		       "event handler for device \"%s\"\n", dev_name);
 		return 1;

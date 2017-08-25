@@ -308,6 +308,7 @@ static void __dso_dev_copy(struct dso_raid_dev *dst, struct dso_raid_dev *src)
 	strcpy(dst->name, src->name);
 	strcpy(dst->major_minor, src->major_minor);
 	dst->port = src->port;
+	dst->active = src->active;
 }
 
 /* Copy a struct dso_raid_dev. */
@@ -316,7 +317,7 @@ static void _dso_dev_copy(struct dso_raid_set *rs, struct dso_raid_dev *dst)
 	struct dso_raid_dev *src = rs->devs + rs->num_devs - 1;
 
 	if (rs->num_devs < 0)
-		syslog(LOG_ERR, "Programatic error: num_devs < o");
+		syslog(LOG_ERR, "Programatic error: num_devs < 0");
 
 	if (src != dst)
 		__dso_dev_copy(dst, src);
@@ -595,7 +596,7 @@ static int _get_sysfs_major_minor(const char *d_name, char *major_minor,
  * Retrieve device properties for @dev_name from sysfs
  * (major:minor and port number) into @dev.
  *
- * Return 0 for failure, 0 for success.
+ * Return 1 for failure, 0 for success.
  */
 /* FIXME: straighten this by using libsysfs ? */
 static int _set_raid_dev_properties(const char *dev_name,
@@ -611,11 +612,11 @@ static int _set_raid_dev_properties(const char *dev_name,
 
 	/* Get major:minor of this RAID device. */
 	if (_get_sysfs_major_minor(dev_name, dev->major_minor, log_type))
-		return -ENOENT;
+		return 1;
 
 	dir_entries = _scandir(sys_scsi_path, &dir_ent, _scandir_dot_filter);
 	if (dir_entries < 0)
-		return -ENOENT;
+		return 1;
 
 	/* Remember length of initial sysfs path. */
 	strcpy(path, sys_scsi_path);
@@ -788,8 +789,8 @@ static struct dso_raid_set *_add_raid_dev(struct dso_raid_set *rs,
 			grown_raid_set->devs + grown_raid_set->num_devs - 1;
 
 		if (_set_raid_dev_properties(d_name, dev, log_type)) {
-			dm_free(grown_raid_set);
-			return NULL;
+			/* Unable to get device properties - reset them to initial values */
+			_dso_dev_init(dev);
 		}
 	}
 
@@ -915,11 +916,9 @@ static struct dso_raid_set *_get_slave_devices(const char *rs_name,
 
 		/* Append to RAID sets list of RAID devices. */
 		rs = _add_raid_dev(rs, rs_name, d_name, log_type);
-		if (!rs)
-			break;
+		_check_raid_dev_active(d_name, rs->devs + rs->num_devs - 1);
 
 		dm_free(dir_ent[i]);
-		_check_raid_dev_active(d_name, rs->devs + rs->num_devs - 1);
 	}
 
 	_destroy_dirent(dir_ent, i, dir_entries);
@@ -957,6 +956,7 @@ static struct dso_raid_set *_create_raid_set(const char *rs_name,
 	struct dm_task *dmt;
 	struct dm_info dev_info;
 	struct dirent *dent, **dir_ent;
+	struct dso_raid_dev *dev = NULL;
 
 	/* Get device Info. */
 	dmt = dm_task_create(DM_DEVICE_INFO);
@@ -1007,6 +1007,15 @@ static struct dso_raid_set *_create_raid_set(const char *rs_name,
 		free(dent);
 	}
 
+	 /* Check if all devices are avaliable */
+	for (dev = rs->devs, i = 0; i < rs->num_devs; i++, dev++) {
+	    	/* If there is no major:minor number device is missing */
+		if (*dev->major_minor == '\0') {
+			/* Replace failed device with last device in set; reduce num_devs. */
+			_dso_dev_copy(rs, dev);
+		}
+	}
+	
 	return rs;
 }
 
@@ -1292,13 +1301,13 @@ static enum disk_state_type _process_raid45_event(struct dm_task *dmt,
 
 	dev_status_str = args[num_devs + 1];
 
-	/* Consistency check on num_devs and status chars. */
-	i = _get_num_devs_from_status(dev_status_str);
-	if (i != num_devs)
-		goto err;
+	/* check if is it rebuilding in progress */
+	if (strchr(dev_status_str, 'i'))
+	    return D_FAILURE_NOSYNC;
 
+	syslog(LOG_INFO, "dev_status_str= %s", dev_status_str);
 	/* Check for bad raid45 devices. */
-	for (i = 0, p = dev_status_str; i < rs->num_devs; i++) {
+	for (i = 0, p = dev_status_str; i <= rs->num_devs; i++) {
 		/* Skip past any non active/dead identifiers. */
 		dead = *(p++) == 'D';
 		while (*p && *p != 'A' && *p != 'D')
@@ -1318,7 +1327,8 @@ static enum disk_state_type _process_raid45_event(struct dm_task *dmt,
 			/* Copy last device in set; reduce num_devs. */
 			_dso_dev_copy(rs, dev);
 			ret = D_FAILURE_DISK;
-		}
+		} else 
+		    ret = D_FAILURE_NOSYNC;
 	}
 
 	return ret;
