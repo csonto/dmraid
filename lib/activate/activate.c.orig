@@ -419,7 +419,7 @@ _dm_raid1_bol(struct lib_context *lc, char **table,
 	 * event handling in the kernel driver here for RHEL5.
 	 * In mainline, dm-raid1 handles it, in RHEL5, it's dm-log.
 	 */
-	return (p_fmt(lc, table, "0 %U %s core 3 %u %s block_on_error %u",
+	return (p_fmt(lc, table, "0 %U %s core 2 %u %s %u",
 		      sectors, get_dm_type(lc, t_raid1),
 		      calc_region_size(lc, sectors),
 		      (need_sync) ? "sync" : "nosync", mirrors));
@@ -519,9 +519,14 @@ dm_raid1(struct lib_context *lc, char **table, struct raid_set *rs)
 				     swap_rd->di->path, swap_rd->offset))
 			goto err;
 
-	return 1;
+	/*
+	 * Append the flag/feature required for dmraid1
+	 * event handling in the kernel driver.
+	 */
+	if (p_fmt(lc, table, " 1 handle_errors"))
+		return 1;
 
-      err:
+err:
 	return log_alloc_err(lc, __func__);
 }
 
@@ -959,11 +964,13 @@ activate_subset(struct lib_context *lc, struct raid_set *rs, enum dm_what what)
 {
 	int ret = 0;
 	char *table = NULL;
+	struct dmraid_format *fmt = get_format(rs);
 
 	if (T_GROUP(rs))
 		return 1;
 
-	if (what == DM_REGISTER)
+	if (what == DM_REGISTER &&
+	    fmt->metadata_handler)
 		return register_devices(lc, rs);
 
 	/* Call type handler */
@@ -1048,8 +1055,10 @@ deactivate_superset(struct lib_context *lc, struct raid_set *rs,
 		    enum dm_what what)
 {
 	int ret = 1, status;
+	struct dmraid_format *fmt = get_format(rs);
 
-	if (what == DM_REGISTER)
+	if (what == DM_REGISTER &&
+	    fmt->metadata_handler)
 		return unregister_devices(lc, rs);
 
 	status = dm_status(lc, rs);

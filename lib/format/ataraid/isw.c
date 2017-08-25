@@ -1302,11 +1302,9 @@ isw_metadata_handler(struct lib_context *lc, enum handler_commands command,
 	case GET_REBUILD_DRIVE_NO:
 		rd = list_entry(rs->devs.next, typeof(*rd), devs);
 		isw = META(rd, isw);
-		idx = rd_idx_by_name(isw, lc->options[LC_REBUILD_SET].arg.str);
-		if (idx < 0)
-			return 0;
 
-		dev = raiddev(isw, idx);
+		/* Get disk to rebuild index form metadata stored on first disk */
+		dev = raiddev(isw, 0);
 		disk = isw->disk;
 
 		if (info) {
