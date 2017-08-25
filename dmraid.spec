@@ -129,59 +129,60 @@ rm -rf $RPM_BUILD_ROOT
 %ghost /etc/logwatch/scripts/services/dmeventd_syslogpattern.txt
 
 %changelog
-* Wed Sep 09 2008 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc16-
-- Updated
+* Thu Sep 16 2009 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc16
+- Update to version 1.0.0.rc16
 
-* Wed Sep 17 2008 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc15
-- Added support for RAID set create/delete/rebuild and event handling
-  (Intel contributions)
-- Resolves: rhbz#437169 rhbz#437173 rhbz#437177 rhbz#439088
+* Fri Apr 17 2009 Hans de Goede <hdegoede@redhat.com> - 1.0.0.rc15-7
+- Fix activation of isw raid sets when the disks have serialnumber longer
+  then 16 characters (#490121)
 
-* Fri Feb 08 2008 Ian Kent <ikent@redhat.com> - 1.0.0.rc15
-- Bug 427550: dmraid segfaults on boot resulting in broken mirror
-  - patch to fix SEGV when requesting activation of invalid raid set.
-  the feature.
-  Related: rhbz#427550
+* Tue Feb 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.0.rc15-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 
-* Wed Feb 06 2008 Peter Jones <pjones@redhat.com> - 1.0.0.rc13-8
-- Revert fix for 381501, since the RHEL kernel doesn't currently support
-  the feature.
-  Related: rhbz#381501
+* Fri Feb 13 2009 Hans de Goede <hdegoede@redhat.com> - 1.0.0.rc15-5
+- Make --rm_partitions work with older kernels which return EINVAL when trying
+  to remove a partition with a number > 16
+- Document --rm_partitions in the man page
 
-* Fri Jan 18 2008 Ian Kent <ikent@redhat.com> - 1.0.0.rc13-7
-- fix incorrectly applied patch in spec file.
-- Related: rhbz#236891
+* Thu Feb 12 2009 Hans de Goede <hdegoede@redhat.com> - 1.0.0.rc15-4
+- Add patch adding --rm_partitions cmdline option and functionality (#484845)
 
-* Wed Nov 21 2007 Ian Kent <ikent@redhat.com> - 1.0.0.rc13-6
-- Bug 381511: dmraid needs to generate UUIDs for lib device-mapper
-  - add patch to set UUID.
+* Thu Feb  5 2009 Hans de Goede <hdegoede@redhat.com> - 1.0.0.rc15-3
+- Fix mismatch between BIOS and dmraid's view of ISW raid 10 sets
+
+* Tue Nov 18 2008 Bill Nottingham <notting@redhat.com> - 1.0.0.rc15-2
+- Re-add upstream whitespace removal patch (#468649, #470634)
+
+* Thu Sep 25 2008 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc15-1
+- Update to version 1.0.0.rc15
+
+* Thu Jul 03 2008 Alasdair Kergon <agk@redhat.com> - 1.0.0.rc14-8
+- Move library into libs subpackage.
+- Fix summary and licence tags.
+- Replace static build with symlink.
+
+* Tue Feb 19 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 1.0.0.rc14-7
+- Autorebuild for GCC 4.3
+
+* Wed Nov 21 2007 Ian Kent <ikent@redhat.com> - 1.0.0.rc14-6
+- Bug 379911: dmraid needs to generate UUIDs for lib device-mapper
   - add "DMRAID-" prefix to dmraid UUID string.
-- Bug 381501: dmraid needs to activate device-mapper mirror resynchronization error handling
-- Resolves: rhbz#381511 rhbz#381501
 
-* Fri Nov 2 2007 Ian Kent <ikent@redhat.com> - 1.0.0.rc13-5
-- Fix SEGV on "dmraid -r -E" (bz 236891)
-- Resolves: rhbz#236891
+* Wed Nov 14 2007 Ian Kent <ikent@redhat.com> - 1.0.0.rc14-5
+- Bug 379911: dmraid needs to generate UUIDs for lib device-mapper
+- Bug 379951: dmraid needs to activate device-mapper mirror resynchronization error handling
 
-* Mon Sep 10 2007 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc13-4
-- Adjusted %dist to rebuild
-- Resolves: #211012
+* Mon Oct 22 2007 Ian Kent <ikent@redhat.com> - 1.0.0.rc14-4
+- Fix SEGV on "dmraid -r -E" (bz 236891).
 
-* Mon Sep 10 2007 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc13-4
-- Missed a bug with dm map names
-- Resolves: #211012
+* Wed Apr 18 2007 Peter Jones <pjones@redhat.com> - 1.0.0.rc14-3
+- Fix jmicron name parsing (#219058)
 
-* Tue Jun 26 2007 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc13-3
-- Fix dmraid map names
-- Resolves: #211012
-- Fix unaligned access messages
-  Resolves: #210361, #211150
-- Fix jmicron name parsing (bz#219058)
-
-* Wed Nov  8 2006 Peter Jones <pjones@redhat.com> - 1.0.0.rc13-2
-- We didn't change the API or ABI, so don't change the version number
-  because it'll change the SONAME, which means we have to needlessly rebuild
-  other packages.
+* Mon Feb 05 2007 Alasdair Kergon <agk@redhat.com> - 1.0.0.rc14-2
+- Add build dependency on new device-mapper-devel package.
+- Add dependency on device-mapper.
+- Add post and postun ldconfig.
+- Update BuildRoot and Summary.
 
 * Wed Nov 08 2006 Heinz Mauelshagen <heinzm@redhat.com> - 1.0.0.rc14-1
 - asr.c: fixed Adaptec HostRAID DDF1 metadata discovery (bz#211016)
