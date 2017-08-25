@@ -838,13 +838,13 @@ static void _log_either(enum log_type log_type,
 
 	sz = _log_all_devs(log_type, rs, NULL, 0);
 	if (!sz) {
-		syslog(LOG_ERR, msg[0]);
+		syslog(LOG_ERR, "%s", msg[0]);
 		return;
 	}
 
 	str = dm_malloc(++sz);
 	if (!str) {
-		syslog(LOG_ERR, msg[1]);
+		syslog(LOG_ERR, "%s", msg[1]);
 		return;
 	}
 
@@ -1076,7 +1076,7 @@ static enum disk_state_type _process_stripe_event(struct dm_task *dmt,
 						  char *params)
 {
 	int argc, i, num_devs, ret = D_INSYNC;
-	char **args, *dev_status_str, *p;
+	char **args = NULL, *dev_status_str, *p;
 	const char *rs_name = dm_task_get_name(dmt);
 	struct dso_raid_set *rs = _find_raid_set(rs_name, NULL, 1);
 	struct dso_raid_dev *dev;
