@@ -68,14 +68,14 @@ make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -m 755 -d $RPM_BUILD_ROOT{%{_libdir},/sbin,%{_sbindir},%{_bindir},%{_libdir},%{_includedir}/dmraid/,/var/lock/dmraid,/etc/cron.d/,/etc/logwatch/conf/services/,/etc/logwatch/scripts/services/}
+install -m 755 -d $RPM_BUILD_ROOT{%{_libdir},%{_sbindir},%{_bindir},%{_libdir},%{_includedir}/dmraid/,/var/lock/dmraid,/etc/cron.d/,/etc/logwatch/conf/services/,/etc/logwatch/scripts/services/}
 make DESTDIR=$RPM_BUILD_ROOT install
 
 # Install static dmraid binary
-install -m 755 tools/dmraid.static $RPM_BUILD_ROOT/sbin/dmraid.static
+install -m 755 tools/dmraid.static $RPM_BUILD_ROOT/${_sbindir}/dmraid.static
 
 # Provide convenience link from dmevent_tool
-(cd $RPM_BUILD_ROOT/sbin ; ln -f dmevent_tool dm_dso_reg_tool)
+(cd $RPM_BUILD_ROOT/%{_sbindir}; ln -f dmevent_tool dm_dso_reg_tool)
 install -m 644 include/dmraid/*.h $RPM_BUILD_ROOT%{_includedir}/dmraid/
 
 # If requested, install the libdmraid and libdmraid-events (for dmeventd) DSO
@@ -104,9 +104,9 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %doc CHANGELOG CREDITS KNOWN_BUGS LICENSE LICENSE_GPL LICENSE_LGPL README TODO doc/dmraid_design.txt
-/%{_mandir}/man8/dmraid*
-/sbin/dmraid
-/sbin/dmraid.static
+%{_mandir}/man8/dmraid*
+%{_sbindir}/dmraid
+%{_sbindir}/dmraid.static
 %{_libdir}/libdmraid.so*
 %{_libdir}/libdmraid-events-isw.so*
 /var/lock/dmraid
@@ -118,9 +118,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n dmraid-events
 %defattr(-,root,root)
-/%{_mandir}/man8/dmevent_tool*
-/sbin/dmevent_tool
-/sbin/dm_dso_reg_tool
+%{_mandir}/man8/dmevent_tool*
+%{_sbindir}/dmevent_tool
+%{_sbindir}/dm_dso_reg_tool
 
 %files -n dmraid-events-logwatch
 %defattr(-,root,root)
