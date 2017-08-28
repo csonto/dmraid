@@ -59,12 +59,12 @@ Device failure reporting has to be activated manually by activating the
 %setup -q -n dmraid/%{version}
 
 %build
-%configure --prefix=${RPM_BUILD_ROOT}/usr --sbindir=${RPM_BUILD_ROOT}/sbin --libdir=${RPM_BUILD_ROOT}/%{_libdir} --mandir=${RPM_BUILD_ROOT}/%{_mandir} --includedir=${RPM_BUILD_ROOT}/%{_includedir} --enable-debug --enable-libselinux --enable-libsepol --enable-static_link --enable-led --enable-intel_led
-make DESTDIR=$RPM_BUILD_ROOT
+%configure --enable-debug --enable-libselinux --enable-libsepol --enable-static_link --enable-led --enable-intel_led
+make
 mv tools/dmraid tools/dmraid.static
 make clean
-%configure --prefix=${RPM_BUILD_ROOT}/usr --sbindir=${RPM_BUILD_ROOT}/sbin --libdir=${RPM_BUILD_ROOT}/%{_libdir} --mandir=${RPM_BUILD_ROOT}/%{_mandir} --includedir=${RPM_BUILD_ROOT}/%{_includedir} --enable-debug --enable-libselinux --enable-libsepol --disable-static_linko --enable-led --enable-intel_led
-make DESTDIR=$RPM_BUILD_ROOT
+%configure --enable-debug --enable-libselinux --enable-libsepol --disable-static_linko --enable-led --enable-intel_led
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
