@@ -31,7 +31,7 @@ _name(struct lib_context *lc, struct raid_dev *rd,
 {
 	const char *base = get_basename(lc, rd->di->path);
 
-	return type ? snprintf(str, len, "%s%s%u", base, OPT_STR_PARTCHAR(lc),
+	return type ? snprintf(str, len, "%s%u", base,
 			       partition) : snprintf(str, len, "%s", base);
 }
 
