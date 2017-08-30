@@ -693,6 +693,7 @@ DEBUG_MALLOC
 DMRAID_TEST
 DMRAID_VERSION
 DMRAID_LIB_VERSION
+DMRAID_LIB_MAJOR_VERSION
 DIETLIBC
 GROUP
 JOBS
@@ -5767,8 +5768,10 @@ fi
 
 if test "-f lib/version.h"; then
   DMRAID_LIB_VERSION="`sed --quiet 's/^.*\(DMRAID_LIB_VERSION\)[^_].*"\(.*\)"/\2/p' lib/version.h`"
+  DMRAID_LIB_MAJOR_VERSION="`grep DMRAID_LIB_MAJOR_VERSION lib/version.h | tr '\t' ' ' | cut -f 3 -d ' '`"
 else
   DMRAID_LIB_VERSION="Unknown"
+  DMRAID_LIB_MAJOR_VERSION="Unknown"
 fi
 
 

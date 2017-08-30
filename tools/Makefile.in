@@ -34,12 +34,16 @@ ifeq ("@KLIBC@", "yes")
 	DMRAIDLIBS += -ldevmapper_klibc
 else
 	ifeq ("@DIETLIBC@", "yes")
-		DMRAIDLIBS += -ldevmapper_dietc
+		ifeq ("@LIB_SO@", "no")
+			DMRAIDLIBS += -ldevmapper_dietc
+		endif
 		ifeq ("@STATIC_LINK@", "no")
 			DMEVENTTOOLLIBS = -ldevmapper-event_dietc
 		endif
 	else
-		DMRAIDLIBS += -ldevmapper
+		ifeq ("@LIB_SO@", "no")
+			DMRAIDLIBS += -ldevmapper
+		endif
 		ifeq ("@STATIC_LINK@", "no")
 			DMEVENTTOOLLIBS = -ldevmapper-event
 		endif

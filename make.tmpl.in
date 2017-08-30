@@ -44,6 +44,7 @@ endif
 OWNER = @OWNER@
 GROUP = @GROUP@
 DMRAID_LIB_VERSION = @DMRAID_LIB_VERSION@
+DMRAID_LIB_MAJOR_VERSION = @DMRAID_LIB_MAJOR_VERSION@
 
 # The number of jobs to run, if blank, defaults to the make standard
 ifndef MAKEFLAGS
@@ -136,7 +137,7 @@ $(TARGETS): $(OBJECTS)
 
 %.so: $(OBJECTS)
 	$(CC) -shared -Wl,-soname,$(notdir $@).$(DMRAID_LIB_VERSION) \
-	-Wl,--version-script,.export.sym $(OBJECTS) -o $@ -ldevmapper-event
+	-Wl,--version-script,.export.sym $(OBJECTS) $(LIBDMRAIDLIBS) -o $@ -ldevmapper-event
 
 $(LIB_STATIC): $(OBJECTS)
 	$(RM) $@

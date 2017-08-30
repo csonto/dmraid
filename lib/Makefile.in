@@ -65,6 +65,11 @@ ifeq ("@KLIBC@", "no")
 		LIB_EVENTS_SHARED=$(top_srcdir)/lib/$(LIB_EVENTS_NAME).so
 		TARGETS += $(LIB_SHARED) $(LIB_EVENTS_SHARED)
 		INSTALL_TARGETS += $(LIB_SHARED) $(LIB_EVENTS_SHARED)
+		ifeq ("@DIETLIBC@", "yes")
+			LIBDMRAIDLIBS += -ldevmapper_dietc
+		else
+			LIBDMRAIDLIBS += -ldevmapper
+		endif
 	endif
 endif
 
@@ -82,10 +87,11 @@ install_dmraid_libs: $(INSTALL_TARGETS)
 	for f in $(INSTALL_TARGETS); \
 	do \
 		n=$$(basename $${f}) ; \
-		if [[ "$$n" =~ '.so$$' ]]; then \
+		if echo "$$n" | grep -q '.so$$'; then \
 			$(INSTALL) -m 555 $(STRIP) \
 				$$f $(libdir)/$${n}.@DMRAID_LIB_VERSION@; \
-			$(LN_S) -f $${n}.@DMRAID_LIB_VERSION@ $(libdir)/$${n}; \
+			mkdir -p $(prefix)/lib; \
+			cd $(prefix)/lib/ && $(LN_S) -f /lib/$${n}.@DMRAID_LIB_VERSION@ $${n}; \
 		else \
 			$(INSTALL) -m 555 $(STRIP) $$f $(libdir)/$${n}; \
 		fi \
