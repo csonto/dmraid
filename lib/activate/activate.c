@@ -849,18 +849,12 @@ enum dm_what { DM_ACTIVATE, DM_REGISTER };
 static int
 dm_register_for_event(char *dev_name, char *lib_name)
 {
-#ifdef	DMRAID_AUTOREGISTER
-	dm_register_device(dev_name, lib_name);
-#endif
 	return 1;
 }
 
 static int
 dm_unregister_for_event(char *dev_name, char *lib_name)
 {
-#ifdef	DMRAID_AUTOREGISTER
-	dm_unregister_device(dev_name, lib_name);
-#endif
 	return 1;
 }
 
@@ -873,6 +867,8 @@ do_device(struct lib_context *lc, struct raid_set *rs, int (*f) ())
 
 	if (OPT_TEST(lc))
 		return 1;
+
+	return 1;
 
         struct dmraid_format *fmt = get_format(rs);
 

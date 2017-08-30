@@ -45,10 +45,6 @@ SOURCES=\
 	format/ddf/ddf1_dump.c \
 	format/partition/dos.c
 
-ifeq ("@STATIC_LINK@", "no")
-	SOURCES += register/dmreg.c
-endif
-
 OBJECTS=$(SOURCES:%.c=%.o)
 
 LIB_STATIC=$(top_srcdir)/lib/libdmraid.a
@@ -63,8 +59,8 @@ ifeq ("@KLIBC@", "no")
 	ifeq ("@STATIC_LINK@", "no")
 		LIB_SHARED=$(top_srcdir)/lib/libdmraid.so
 		LIB_EVENTS_SHARED=$(top_srcdir)/lib/$(LIB_EVENTS_NAME).so
-		TARGETS += $(LIB_SHARED) $(LIB_EVENTS_SHARED)
-		INSTALL_TARGETS += $(LIB_SHARED) $(LIB_EVENTS_SHARED)
+		TARGETS += $(LIB_SHARED)
+		INSTALL_TARGETS += $(LIB_SHARED)
 		ifeq ("@DIETLIBC@", "yes")
 			LIBDMRAIDLIBS += -ldevmapper_dietc
 		else

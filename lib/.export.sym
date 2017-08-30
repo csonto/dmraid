@@ -52,8 +52,6 @@ Base {
 		dso_end_rebuild;
 		hot_spare_add;
 		dso_get_members;
-		dm_register_device;
-		dm_unregister_device;
 		dm_all_monitored;
 	local:
 		*;

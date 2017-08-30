@@ -137,7 +137,7 @@ $(TARGETS): $(OBJECTS)
 
 %.so: $(OBJECTS)
 	$(CC) -shared -Wl,-soname,$(notdir $@).$(DMRAID_LIB_VERSION) \
-	-Wl,--version-script,.export.sym $(OBJECTS) $(LIBDMRAIDLIBS) -o $@ -ldevmapper-event
+	-Wl,--version-script,.export.sym $(OBJECTS) $(LIBDMRAIDLIBS) -o $@
 
 $(LIB_STATIC): $(OBJECTS)
 	$(RM) $@

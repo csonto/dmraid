@@ -22,12 +22,6 @@ TARGETS=\
 
 include $(top_srcdir)/make.tmpl
 
-ifeq ("@KLIBC@", "no")
-	ifeq ("@STATIC_LINK@", "no")
-		TARGETS += dmevent_tool
-	endif
-endif
-
 DMRAIDLIBS=-ldmraid
 
 ifeq ("@KLIBC@", "yes")
@@ -37,15 +31,9 @@ else
 		ifeq ("@LIB_SO@", "no")
 			DMRAIDLIBS += -ldevmapper_dietc
 		endif
-		ifeq ("@STATIC_LINK@", "no")
-			DMEVENTTOOLLIBS = -ldevmapper-event_dietc
-		endif
 	else
 		ifeq ("@LIB_SO@", "no")
 			DMRAIDLIBS += -ldevmapper
-		endif
-		ifeq ("@STATIC_LINK@", "no")
-			DMEVENTTOOLLIBS = -ldevmapper-event
 		endif
 	endif
 

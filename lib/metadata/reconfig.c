@@ -242,20 +242,16 @@ add_dev_to_raid(struct lib_context *lc, struct raid_set *rs,
 		 * metadata on disks to OK state.
 		 */
 		/* Create lib-events library name */
-		if (fmt->name) {
+		/*if (fmt->name) {
 			strncpy(lib_name, "libdmraid-events-", LIB_NAME_LENGTH);
 			strncat(lib_name, fmt->name,
 				LIB_NAME_LENGTH-strlen(fmt->name)-3);
 			strncat(lib_name, ".so", 3);
 		} else
 			goto err;
-
-		/* Check registration */
-		if (!dm_monitored_events(&pending, sub_rs->name, lib_name)) {
-			/* If NOT registered update metadata to OK state. */
+*/
 			if (check_rd->fmt->metadata_handler)
 				check_rd->fmt->metadata_handler(lc, UPDATE_REBUILD_STATE, NULL, (void *) rs);
-		}
 	}
 #endif
 
