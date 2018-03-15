@@ -129,7 +129,7 @@ $(TARGETS): $(OBJECTS)
 %.so: $(OBJECTS) .export.sym
 
 %.so: $(OBJECTS)
-	$(CC) -shared -Wl,-soname,$(notdir $@).$(DMRAID_LIB_VERSION) \
+	$(CC) -shared $(CFLAGS) $(LDFLAGS) -Wl,-soname,$(notdir $@).$(DMRAID_LIB_VERSION) \
 	-Wl,--version-script,.export.sym $(OBJECTS) -o $@ -ldevmapper-event
 
 $(LIB_STATIC): $(OBJECTS)
