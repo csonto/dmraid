@@ -1433,7 +1433,7 @@ create_raidset(struct lib_context *lc, struct raid_set_descr *rsd)
 		rd->sectors = 0;
 		list_add_tail(&rd->devs, &rs->devs);
 		n++;
-	} while (*end++ != '\0');
+	} while (end++ != NULL);
 
 	rs->total_devs = rs->found_devs = n;
 	rs_tmp = rs;
